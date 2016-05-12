@@ -1,3 +1,4 @@
+import clusterdata
 import sys, os, subprocess
 from sys import argv
 from math import sqrt, floor, ceil
@@ -72,7 +73,10 @@ def pack_and_submit(snapshotdir,indivdir,cluster_size,ibatch,ncores,wallminutes)
  csdir = "/%03d" % cluster_size
  batchdir = "/%03d" % ibatch
  submitdir = snapshotdir + csdir + batchdir 
- command = "cd %s; tar --remove-files -zcf packed.tar.gz %s*; ../../../submit_clusters.pl -1 %d 16 sandybridge -1 00 %d farm%d-%03d farming.inp farming.out; cd ../.." % (submitdir,indivdir,ncores,wallminutes,cluster_size,ibatch)
+ if (clusterdata.doSubmit):
+  command = "cd %s; tar --remove-files -zcf packed.tar.gz %s*; ../../../submit_clusters.pl -1 %d 16 sandybridge -1 00 %d farm%d-%03d farming.inp farming.out; cd ../.." % (submitdir,indivdir,ncores,wallminutes,cluster_size,ibatch)
+ else: 
+  command = "cd %s; tar --remove-files -zcf packed.tar.gz %s*; echo fake-submission -1 %d 16 sandybridge -1 00 %d farm%d-%03d farming.inp farming.out; cd ../.." % (submitdir,indivdir,ncores,wallminutes,cluster_size,ibatch)
  process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
  proc_stdout = process.communicate()[0].strip()
  print proc_stdout
@@ -251,7 +255,7 @@ def create_new_cluster_record( mols, coords, abc_gasphase, indivdir, snapshotdir
  if (nclusters >= 150):
   ngroups,ncores,ppn,wallminutes = get_schedule(nclusters)
   farming_file_finish_writing(farming_file,ngroups)
-  print "%3d-molecule clusters: %10d --> %10d%10d%10d" % (cluster_size,nclusters,ngroups,ncores,wallminutes)
+  print "%3d-molecule clusters: #clusters %10d --> groups %10d cores %10d minutes %10d" % (cluster_size,nclusters,ngroups,ncores,wallminutes)
   pack_and_submit(snapshotdir,indivdir,cluster_size, ibatch, ncores,wallminutes)
   # restart the counter and open new farming files
   nclusters = 0
@@ -282,7 +286,7 @@ def create_connectivity_matrix(array_of_lines,nmols,Rcutoff):
   
   for imol in range(0, nmols): 
    if ( imol%500==0 ):
-    print "first molecule: %10d" % (imol) 
+    print "Creating connectivity matrix: %10d" % (imol) 
    for jmol in range(imol+1, nmols): 
      Rij = get_OO_distance(array_of_lines,imol,jmol) 
      if ( Rij < Rcutoff ):
