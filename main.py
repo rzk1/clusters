@@ -37,6 +37,9 @@ natoms = len(array_of_lines_zero)
 if (natoms%clusterdata.atoms_per_molecule != 0): "Something is wrong: natoms = %10d" % natoms
 nmols_unique = int(floor(natoms/clusterdata.atoms_per_molecule))
 
+if (clusterdata.only_first_N_molecules>0):
+ nmols_unique=clusterdata.only_first_N_molecules
+
 clusterdata.array_of_lines = clusters.expand_0cell_to_multiple_cells(array_of_lines_zero,ncells,clusterdata.abc)
 
 natoms = len(clusterdata.array_of_lines)

@@ -8,6 +8,7 @@ largest_cluster=2
 atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
 Rcutoff = 4.0
 doSubmit = False
+only_first_N_molecules=0 # if more than zero select only the first N molecules from the central cell
 
 ########## SHARED DATA ############
 # bookkeeping: farming files and counters for different cluster size
