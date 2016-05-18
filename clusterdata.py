@@ -3,8 +3,8 @@ import clusters
 ########## IMPORTANT INITIAL SETTINGS ################
 indivdir = "cluster"
 cp2kfname = "standard"
-abc = [15.5356853362,15.5356853362,15.5356853362] # periodic box lengths
-largest_cluster=2
+abc = [35., 35.,35.] #[15.5356853362,15.5356853362,15.5356853362] # periodic box lengths
+largest_cluster=5
 atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
 Rcutoff = 4.0
 doSubmit = False

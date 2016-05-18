@@ -1,4 +1,5 @@
 from sys import exit
+import random
 import clusters, clusterdata
 
 def loop_over_all_clusters(cluster_index, start_index, nmols_unique, nmols, cluster_size_max):
@@ -65,22 +66,72 @@ def is_connected(cluster_index,connectivity):
   if (connectivity[cluster_index[0]][cluster_index[1]]==1):
    is_connected=True
  
- elif (cluster_size==3):
-  
-  print "Not yet implemented"
-  sys.exit(123)
-
- elif (cluster_size==4):
-
-  print "Not yet implemented"
-  sys.exit(123)
-
+ #Utilizes DFS in order to get a list of all the connected molecules, if it matches cluster_size, that means that all of them are connected and returns true.
  else:
+  visited=[]
+  DFS(visited,cluster_index[0],connectivity,cluster_index)
+  #Performs DFS at the first index
+  # DFS(visited,cluster_index[0],connectivity,cluster_index)
 
-  print "Cluster is too large to process"
-  sys.exit(123)
-
+  if(len(visited) == cluster_size):
+    is_connected = True
+    print (visited)
+  else:
+    is_connected = False
  return is_connected
+ 
+def BFS(start,connectivity,cluster_index):
+  visited = []
+  queue = [start]
+  while queue:
+    check = queue.pop(0)
+    if check not in visited:
+      visited.append(check)
+      for i in cluster_index:
+        clone= int(check)
+        clone2 = int(i)
+        if (i != check & connectivity[clone][clone2]== 1):
+          queue.append(i)
+  return visited
+
+def binarysearch(visited,search):
+  if len(visited) == 0:
+    return False
+  else:
+    midpoint = len(visited)//2
+    if visited[midpoint] == search:
+      return True
+    else:
+      if search<visited[midpoint]:
+        return binarysearch(visited[:midpoint],search)
+      else:
+        return binarysearch(visited[midpoint+1:],search)
+
+
+def rndmqsort(visited): 
+    if len(visited)<2: 
+      return visited
+    pivot_element = random.choice(visited)
+    small = [i for i in visited if i< pivot_element]
+    medium = [i for i in visited if i==pivot_element]
+    large = [i for i in visited if i> pivot_element]
+    return rndmqsort(small) + medium + rndmqsort(large)
+
+def DFS(visited,node,connectivity,cluster_index):
+  #Add the node being visited to the visited list
+  visited.append(node)
+  #Quicksorts the list
+  rndmqsort(visited)
+  #Searches through the cluster_index
+  for i in cluster_index:
+    #If i doesn't equal the present node, or is a previously visited node.
+    if(node != i):
+      if(i not in visited):
+        #Check if the two are connected, if it is it performs depth first search
+        copy = int (i)
+        copy2 = int (node)
+        if(connectivity[copy][copy2] ==1):
+          DFS(visited,i,connectivity,cluster_index)
 
 
 def potential_subsystem(cluster_index):
