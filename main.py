@@ -74,4 +74,3 @@ recursive.loop_over_all_clusters(cluster_index, 0, nmols_unique, nmols, clusterd
 
 ############# wrap up ################
 clusterdata.close_submit_report()
-
