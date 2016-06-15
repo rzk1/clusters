@@ -1,16 +1,34 @@
 import clusters
 
 ########## IMPORTANT INITIAL SETTINGS ################
+# 0 - submit jobs, 1 - get energies
+action = 1 
+# Process this cluster size?
+# String containing 0's and/or 1's. 0 - do not process, 1 - process
+# First digit refers to 1-molecule clusters, second - to 2-molecule and so on 
+docluster = [1,1]
+abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
+#abc = [35., 35.,35.] # flat system
+#abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
+Rcutoff = 7.76
+#Rcutoff = 15.49
+#Rcutoff = 3.01
+doSubmit = False
+only_first_N_molecules=-1 # if more than zero select only the first N molecules from the central cell
+
+atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
 indivdir = "cluster"
 cp2kfname = "standard"
-abc = [35., 35.,35.] #[15.5356853362,15.5356853362,15.5356853362] # periodic box lengths
-largest_cluster=5
-atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
-Rcutoff = 4.0
-doSubmit = False
-only_first_N_molecules=0 # if more than zero select only the first N molecules from the central cell
+tempdir = "TEMPOR"
+energyfile = "energies.out"
+epsilonfile = "epsilon.out"
+###################################
 
 ########## SHARED DATA ############
+# number of molecules in the 0 cell (read from file, shifted to zero cell)
+nmols_0cell = 0
+# number of neigbor cells (in one dimension, one direction, not counting cell zero)
+ncells = [0,0,0]
 # bookkeeping: farming files and counters for different cluster size
 farming_file = []
 ntuples = []
@@ -19,10 +37,16 @@ ntuples_not_submitted = []
 ibatch = []
 # directory/files - related data
 snapshotdir = "."
+largest_cluster = 0
 
 array_of_lines = []
+array_of_charges = []
 connectivity = [] 
 abc_gasphase = [0.0,0.0,0.0]
+
+action_submit = 0
+action_readenergy = 1
+##################################
 
 def init_bookkeeping_data():
  
@@ -34,12 +58,6 @@ def init_bookkeeping_data():
   ibatch.append(1)
   farming_file.append( clusters.farming_file_start_writing( icluster+1, ibatch[icluster], snapshotdir ) )
   #print farming_file, snapshotdir
-
-#def record_number_of_molecules(nmols_unique,nmols):
-# 
-# # use 0th element to keep the number of molecules
-# ntuples[0] = nmols
-# ntuples_kept[0] = nmols_unique
 
 def close_submit_report():
 
