@@ -2,17 +2,17 @@ import clusters
 
 ########## IMPORTANT INITIAL SETTINGS ################
 # 0 - submit jobs, 1 - get energies
-action = 1 
+action = 0 
 # Process this cluster size?
 # String containing 0's and/or 1's. 0 - do not process, 1 - process
 # First digit refers to 1-molecule clusters, second - to 2-molecule and so on 
-docluster = [1,1]
-abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
-#abc = [35., 35.,35.] # flat system
+docluster = [1,1,1,1]
+#abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
+abc = [35., 35.,35.] # flat system
 #abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
-Rcutoff = 7.76
+#Rcutoff = 7.76
 #Rcutoff = 15.49
-#Rcutoff = 3.01
+Rcutoff = 3.01
 doSubmit = False
 only_first_N_molecules=-1 # if more than zero select only the first N molecules from the central cell
 
