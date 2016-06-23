@@ -321,34 +321,28 @@ def write_connectivity_matrix(file,connectivity,nmols):
    fp.writelines(["%1d"%connectivity[imol][jmol] for jmol in range(0,nmols)])  
    fp.write("\n")
 
+# when connectivity is written to file only one digit is allowed per table element
+# that is why connectivity table currently stores digits from 0 to 9
+# 0 - distance is less than Rcutoff
+# 1 - distance is between Rcutoff and 2*Rcutoff
+# 2 - distance is between 2*Rcutoff and 3*Rcutoff
+# 9 - distance is larger than 9*Rcutoff
 def create_connectivity_matrix(array_of_lines,nmols,Rcutoff):
 
   # create the connectivity matrix
   #connectivity=[ [ 0 ]*nmols ]*nmols
   print "Creating connectivity matrix: allocation"
-  connectivity=[ [ 0 for imol in range(nmols) ] for jmol in range(nmols) ]
+  connectivity=[ [ 9 for imol in range(nmols) ] for jmol in range(nmols) ]
   
   for imol in range(0, nmols): 
    if ( imol%100==0 ):
     print "Creating connectivity matrix: %10d" % (imol) 
    for jmol in range(imol+1, nmols): 
-    Rij = get_OO_distance(array_of_lines,imol,jmol) 
-
-
-     #DOESN'T SEEM TO PROCESS THIS PROPERLY#
-          #________________________________________________#
-     #if ( Rij < Rcutoff ):
-      # DO NOT WRITE NUMBERS MORE THAN 9 INTO CONNECTIVITY TABLE
-      #Double Check what this means, should logically be identical to the previous code of =1#
-    if Rij>9:
-      connectivity[imol][jmol] = -1
-      connectivity[jmol][imol] = -1
-    else:
-      connectivity[imol][jmol] = Rij
-      connectivity[jmol][imol] = Rij
-
-     #DOESN'T SEEM TO PROCESS THIS PROPERLY#
-          #________________________________________________#
+    Rint = floor( get_OO_distance(array_of_lines,imol,jmol) / Rcutoff ) 
+    # DO NOT WRITE NUMBERS MORE THAN 9 INTO CONNECTIVITY TABLE
+    if ( Rint < 9 ):
+     connectivity[imol][jmol] = Rint
+     connectivity[jmol][imol] = Rint
 
   return connectivity
 

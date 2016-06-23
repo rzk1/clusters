@@ -25,7 +25,7 @@ def loop_over_all_clusters(cluster_index, start_index, nmols_central, nmols, clu
      process_cluster(cluster_index,clusterdata.connectivity)
 
   # can this cluster be a part of a larger structure?
-  grow_it_further = potential_subsystem(cluster_index)
+  grow_it_further = connectable(cluster_index,clusterdata.connectivity)
   if ( len(cluster_index)!=cluster_size_max and grow_it_further ):
    loop_over_all_clusters(cluster_index, imol+1, nmols_central, nmols, cluster_size_max)
   
@@ -41,7 +41,6 @@ def process_cluster(cluster_index,connectivity):
  # create a record if necessary
  if (all_molecules_are_connected):
 
-  #SHOULD ONLY BE PRINTING THIS,WHICH IS CONTROLLED BY IS_CONNECTED, WHICH WAS MODIFIED?
    print cluster_index
 
    # how many molecules are in the cluster
@@ -55,7 +54,6 @@ def process_cluster(cluster_index,connectivity):
    
    elif (clusterdata.action==clusterdata.action_readenergy):
 
-    print ">>>"
     energy=cluster_index[:]
     # loop over all subcluster sizes and accumulate epsilons into energy[itarget]
     # do not include the last cluster because we need to accumulate energy not epsilon
@@ -72,15 +70,14 @@ def process_cluster(cluster_index,connectivity):
      energy[size_index]-=energy[itarget]
     #print "Final cluster epsilon: ", energy[size_index]
     #### sum up epsilons to get the total energy
-    #### use appropriate coefficients
+    #### DANGER: use appropriate coefficients
     coef = 1.0
     clusterdata.total_energy += coef*energy[size_index]
     clusters.write_epsilon_file(cluster_index,energy,clusterdata.snapshotdir,clusterdata.indivdir,clusterdata.epsilonfile)
-    print "<<<"
     
 def is_connected(cluster_index,connectivity):
 
- # TODO: use the connectivity matrix to determine if the molecules are connected
+ # Use the connectivity matrix to determine if the molecules are connected
  cluster_size = len(cluster_index)
  is_connected = False
  
@@ -90,84 +87,75 @@ def is_connected(cluster_index,connectivity):
  
  elif (cluster_size==2):
   
-  if (connectivity[cluster_index[0]][cluster_index[1]]<=clusterdata.Rcutoff):
+  if (connectivity[cluster_index[0]][cluster_index[1]] == 0):
    is_connected=True
  
- #Utilizes DFS in order to get a list of all the connected molecules, if it matches cluster_size, that means that all of them are connected and returns true.
+ # Utilizes DFS in order to get a list of all the connected molecules, 
+ # if it matches cluster_size, that means that all of them are connected and returns true.
  else:
-  if(cluster_size>2 and cluster_size<5):
-    is_connected = cycle(cluster_index,connectivity,cluster_size)
-  else:
-    test = False
-    test = connectable(connectivity, cluster_index,1)
-    if test == True:
-      is_connected = cycle(cluster_index,connectivity,cluster_size)
- return is_connected
-
-def cycle(cluster_index,connectivity,cluster_size):
   visited=[]
   DFS(visited,cluster_index[0],connectivity,cluster_index)
   if(len(visited) == cluster_size):
-    return True
+    is_connected = True
   else:
-    return False
+    is_connected = False
+ 
+ return is_connected
 
+def connectable(cluster_index,connectivity):
 
-def connectable(connectivity,cluster_index,num_mols):
-    true = 0
-    false = 0
-    #x,y,z are the molecules being tested
-    xandy = connectedThroughNPoint(cluster_index[0],cluster_index[1],clusterdata.Rcutoff,num_mols,connectivity)
-    xandz = connectedThroughNPoint(cluster_index[0],cluster_index[2],clusterdata.Rcutoff,num_mols,connectivity)
-    yandz = connectedThroughNPoint(cluster_index[1],cluster_index[2],clusterdata.Rcutoff,num_mols,connectivity)
-    short_long = 0
-    hashtable = {}
-    if xandy:
-        true = true+1
-        hashtable["true"] = "xandy"
-    if xandz:
-        true = true+1
-        hashtable["true"] = "xandz"
-    if yandz:
-        true = true+1
-        hashtable["true"] = "yandz"
-    if true == 3:
-        return True
-    elif true ==0:
-        return False
-    elif true==2:
-        return True
+ # Use the connectivity matrix to determine if the molecules are connected
+ cluster_size = len(cluster_index)
+ is_connectable = True
+ 
+ # cluster of size 1 are connectable
+ # check clusters of size 2 and 3 only
+ # larger clusters are assumed to be connectable because we have not constructed a good algorithm to check them yet
+ if (cluster_size==2):
+  
+  # check condition: r12 < (largest_cluster-1.0)*Rcutoff
+  is_connectable = ( connectivity[cluster_index[0]][cluster_index[1]] < (clusterdata.largest_cluster-1) )
+ 
+ elif (cluster_size==3 and clusterdata.largest_cluster < 6):
+ 
+  xandy = connetableThroughNPoint(cluster_index[0],cluster_index[1],1,connectivity)
+  xandz = connetableThroughNPoint(cluster_index[0],cluster_index[2],1,connectivity)
+  yandz = connetableThroughNPoint(cluster_index[1],cluster_index[2],1,connectivity)
+  nconnections = 0
+  if xandy:
+   nconnections += 1
+   Connected1 = cluster_index[0]
+   Connected2 = cluster_index[1]
+   FurtherAway = cluster_index[2]
+  if xandz:
+   nconnections += 1
+   Connected1 = cluster_index[0]
+   Connected2 = cluster_index[2]
+   FurtherAway = cluster_index[1]
+  if yandz:
+   nconnections += 1
+   Connected1 = cluster_index[1]
+   Connected2 = cluster_index[2]
+   FurtherAway = cluster_index[0]
+
+  if ( nconnections == 3 or nconnections == 2):
+   is_connectable = True
+  elif ( nconnections == 0 ):
+   is_connectable = False
+  else:
+   if(connectivity[Connected1][Connected2] == 0 ) :
+    if(connetableThroughNPoint(FurtherAway,Connected1,clusterdata.largest_cluster-3,connectivity) or connetableThroughNPoint(FurtherAway,Connected2,clusterdata.largest_cluster-3,connectivity)):
+     is_connectable = True
     else:
-        Connected1 = 0
-        Connected2 = 0
-        FurtherAway = 0
-        if hashtable["true"] == "xandy":
-            Connected1 = cluster_index[0]
-            Connected2 = cluster_index[1]
-            FurtherAway = cluster_index[2]
-        elif hashtable["true"] == "xandz":
-            Connected1 = cluster_index[0]
-            Connected2 = cluster_index[2]
-            FurtherAway = cluster_index[1]
-        elif hashtable["true"] == "yandz":
-            Connected1 = cluster_index[1]
-            Connected2 = cluster_index[2]
-            FurtherAway = cluster_index[0]
-        if(connectivity[Connected1][Connected2] <= clusterdata.Rcutoff) :
-            if(connectedThroughNPoint(FurtherAway,Connected1,clusterdata.Rcutoff,num_mols+1,connectivity) or connectedThroughNPoint(FurtherAway,Connected2,clusterdata.Rcutoff,num_mols+1,connectivity)):
-                return True
-            else:
-                return False
-        else:
-          # if(connectivity[Connected1][Connected2] <= (2*clusterdata.Rcutoff)):
-          #   if(connectedThroughNPoint(FurtherAway,Connected1,clusterdata.Rcutoff,num_mols,connectivity) or connectedThroughNPoint(FurtherAway,Connected2,clusterdata.Rcutoff,num_mols,connectivity)):
-          #     return True
-          #   else:
-          #     return False
-          return True
+     is_connectable = False
+   else:
+    is_connectable = True
+ 
+ return is_connectable
 
-def connectedThroughNPoint(x,y,r,n,connectivity):
-    return (connectivity[x][y]<=(n+1)*r)    
+# checks whether distance(a,b) < (N+1)*Rcutoff
+def connetableThroughNPoint(a,b,N,connectivity):
+    return ( connectivity[a][b] < (N+1) )    
 
 def DFS(visited,node,connectivity,cluster_index):
   #Add the node being visited to the visited list
@@ -179,27 +167,11 @@ def DFS(visited,node,connectivity,cluster_index):
         #Check if the two are connected, if it is it performs depth first search
         copy = int (i)
         copy2 = int (node)
-
-        #DOESN'T SEEM TO PROCESS THIS PROPERLY#
-          #________________________________________________#
-        if(connectivity[copy][copy2] <=clusterdata.Rcutoff):
-
-          #________________________________________________#
+        if(connectivity[copy][copy2] == 0):
           DFS(visited,i,connectivity,cluster_index)
 
 
-def potential_subsystem(cluster_index):
   
-  # can this cluster be a part of a larger structure?
-  # even if not all molecules are connected this cluster can
-  # be a part of larger clusters
-  # how do we know if the current cluster is needed for larger clusters?
-  # use a single distance criterion
-  #TEMP_COMM   if ( rAB < ((largest_cluster-1.0+0.001)*Rcutoff) and do_this_cluster_size[2]==1):
-  
-  grow_it = True
-
-  return grow_it
 
 # initial call with subcluster=[], start_index=0
 def loop_over_all_subclusters_in_cluster(subcluster, target_size, start_index, cluster):
