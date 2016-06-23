@@ -332,11 +332,23 @@ def create_connectivity_matrix(array_of_lines,nmols,Rcutoff):
    if ( imol%100==0 ):
     print "Creating connectivity matrix: %10d" % (imol) 
    for jmol in range(imol+1, nmols): 
-     Rij = get_OO_distance(array_of_lines,imol,jmol) 
-     if ( Rij < Rcutoff ):
+    Rij = get_OO_distance(array_of_lines,imol,jmol) 
+
+
+     #DOESN'T SEEM TO PROCESS THIS PROPERLY#
+          #________________________________________________#
+     #if ( Rij < Rcutoff ):
       # DO NOT WRITE NUMBERS MORE THAN 9 INTO CONNECTIVITY TABLE
-      connectivity[imol][jmol] = 1
-      connectivity[jmol][imol] = 1
+      #Double Check what this means, should logically be identical to the previous code of =1#
+    if Rij>9:
+      connectivity[imol][jmol] = -1
+      connectivity[jmol][imol] = -1
+    else:
+      connectivity[imol][jmol] = Rij
+      connectivity[jmol][imol] = Rij
+
+     #DOESN'T SEEM TO PROCESS THIS PROPERLY#
+          #________________________________________________#
 
   return connectivity
 

@@ -41,7 +41,9 @@ def process_cluster(cluster_index,connectivity):
  # create a record if necessary
  if (all_molecules_are_connected):
 
+  #SHOULD ONLY BE PRINTING THIS,WHICH IS CONTROLLED BY IS_CONNECTED, WHICH WAS MODIFIED?
    print cluster_index
+
    # how many molecules are in the cluster
    cluster_size = len(cluster_index)
    size_index=cluster_size-1
@@ -88,66 +90,88 @@ def is_connected(cluster_index,connectivity):
  
  elif (cluster_size==2):
   
-  if (connectivity[cluster_index[0]][cluster_index[1]]==1):
+  if (connectivity[cluster_index[0]][cluster_index[1]]<=clusterdata.Rcutoff):
    is_connected=True
  
  #Utilizes DFS in order to get a list of all the connected molecules, if it matches cluster_size, that means that all of them are connected and returns true.
  else:
+  if(cluster_size>2 and cluster_size<5):
+    is_connected = cycle(cluster_index,connectivity,cluster_size)
+  else:
+    test = False
+    test = connectable(connectivity, cluster_index,1)
+    if test == True:
+      is_connected = cycle(cluster_index,connectivity,cluster_size)
+ return is_connected
+
+def cycle(cluster_index,connectivity,cluster_size):
   visited=[]
   DFS(visited,cluster_index[0],connectivity,cluster_index)
-  #Performs DFS at the first index
-  # DFS(visited,cluster_index[0],connectivity,cluster_index)
-
   if(len(visited) == cluster_size):
-    is_connected = True
-    #print (visited)
+    return True
   else:
-    is_connected = False
- return is_connected
- 
-def BFS(start,connectivity,cluster_index):
-  visited = []
-  queue = [start]
-  while queue:
-    check = queue.pop(0)
-    if check not in visited:
-      visited.append(check)
-      for i in cluster_index:
-        clone= int(check)
-        clone2 = int(i)
-        if (i != check & connectivity[clone][clone2]== 1):
-          queue.append(i)
-  return visited
-
-def binarysearch(visited,search):
-  if len(visited) == 0:
     return False
-  else:
-    midpoint = len(visited)//2
-    if visited[midpoint] == search:
-      return True
+
+
+def connectable(connectivity,cluster_index,num_mols):
+    true = 0
+    false = 0
+    #x,y,z are the molecules being tested
+    xandy = connectedThroughNPoint(cluster_index[0],cluster_index[1],clusterdata.Rcutoff,num_mols,connectivity)
+    xandz = connectedThroughNPoint(cluster_index[0],cluster_index[2],clusterdata.Rcutoff,num_mols,connectivity)
+    yandz = connectedThroughNPoint(cluster_index[1],cluster_index[2],clusterdata.Rcutoff,num_mols,connectivity)
+    short_long = 0
+    hashtable = {}
+    if xandy:
+        true = true+1
+        hashtable["true"] = "xandy"
+    if xandz:
+        true = true+1
+        hashtable["true"] = "xandz"
+    if yandz:
+        true = true+1
+        hashtable["true"] = "yandz"
+    if true == 3:
+        return True
+    elif true ==0:
+        return False
+    elif true==2:
+        return True
     else:
-      if search<visited[midpoint]:
-        return binarysearch(visited[:midpoint],search)
-      else:
-        return binarysearch(visited[midpoint+1:],search)
+        Connected1 = 0
+        Connected2 = 0
+        FurtherAway = 0
+        if hashtable["true"] == "xandy":
+            Connected1 = cluster_index[0]
+            Connected2 = cluster_index[1]
+            FurtherAway = cluster_index[2]
+        elif hashtable["true"] == "xandz":
+            Connected1 = cluster_index[0]
+            Connected2 = cluster_index[2]
+            FurtherAway = cluster_index[1]
+        elif hashtable["true"] == "yandz":
+            Connected1 = cluster_index[1]
+            Connected2 = cluster_index[2]
+            FurtherAway = cluster_index[0]
+        if(connectivity[Connected1][Connected2] <= clusterdata.Rcutoff) :
+            if(connectedThroughNPoint(FurtherAway,Connected1,clusterdata.Rcutoff,num_mols+1,connectivity) or connectedThroughNPoint(FurtherAway,Connected2,clusterdata.Rcutoff,num_mols+1,connectivity)):
+                return True
+            else:
+                return False
+        else:
+          # if(connectivity[Connected1][Connected2] <= (2*clusterdata.Rcutoff)):
+          #   if(connectedThroughNPoint(FurtherAway,Connected1,clusterdata.Rcutoff,num_mols,connectivity) or connectedThroughNPoint(FurtherAway,Connected2,clusterdata.Rcutoff,num_mols,connectivity)):
+          #     return True
+          #   else:
+          #     return False
+          return True
 
-
-def rndmqsort(visited): 
-    if len(visited)<2: 
-      return visited
-    pivot_element = random.choice(visited)
-    small = [i for i in visited if i< pivot_element]
-    medium = [i for i in visited if i==pivot_element]
-    large = [i for i in visited if i> pivot_element]
-    return rndmqsort(small) + medium + rndmqsort(large)
+def connectedThroughNPoint(x,y,r,n,connectivity):
+    return (connectivity[x][y]<=(n+1)*r)    
 
 def DFS(visited,node,connectivity,cluster_index):
   #Add the node being visited to the visited list
   visited.append(node)
-  #Quicksorts the list
-  #rndmqsort(visited)
-  #Searches through the cluster_index
   for i in cluster_index:
     #If i doesn't equal the present node, or is a previously visited node.
     if(node != i):
@@ -155,7 +179,12 @@ def DFS(visited,node,connectivity,cluster_index):
         #Check if the two are connected, if it is it performs depth first search
         copy = int (i)
         copy2 = int (node)
-        if(connectivity[copy][copy2] ==1):
+
+        #DOESN'T SEEM TO PROCESS THIS PROPERLY#
+          #________________________________________________#
+        if(connectivity[copy][copy2] <=clusterdata.Rcutoff):
+
+          #________________________________________________#
           DFS(visited,i,connectivity,cluster_index)
 
 
