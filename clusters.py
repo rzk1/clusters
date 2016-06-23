@@ -287,7 +287,7 @@ def get_OO_distance(array_of_lines,molA,molB):
 
  return ROO
 
-def read_connectivity_matrix(file):
+def read_connectivity_matrix(file,nmols):
 
  print "Reading the connectivity matrix"
 
@@ -308,6 +308,10 @@ def read_connectivity_matrix(file):
    array1D = map(int,array1D)
    connectivity.append(array1D[:])
 
+ if (imol != nmols):
+  print "Connectivity matrix incomplete! %d" % imol
+  exit(1)
+
  return connectivity
 
 def write_connectivity_matrix(file,connectivity,nmols):
@@ -321,6 +325,7 @@ def create_connectivity_matrix(array_of_lines,nmols,Rcutoff):
 
   # create the connectivity matrix
   #connectivity=[ [ 0 ]*nmols ]*nmols
+  print "Creating connectivity matrix: allocation"
   connectivity=[ [ 0 for imol in range(nmols) ] for jmol in range(nmols) ]
   
   for imol in range(0, nmols): 
@@ -335,10 +340,10 @@ def create_connectivity_matrix(array_of_lines,nmols,Rcutoff):
 
   return connectivity
 
-def delete_epsilon_files(docluster,snapshotdir,epsilonfile):
+def delete_epsilon_files(mode,snapshotdir,epsilonfile):
 
- for isize in range(len(docluster)):
-  if (docluster[isize]==1):
+ for isize in range(len(mode)):
+  if (mode[isize]==clusterdata.epsilon_rewrite):
  
    strCS = "/%03d" % (isize+1)
    outEfile = snapshotdir + strCS + "/" + epsilonfile
@@ -487,6 +492,7 @@ def get_cluster_e(mols,snapshotdir,indivdir,energyfile):
   # check if the energy of this cluster has been computed
   dirname0 = indivdir + strID
   command = "grep '%s' %s | awk '{print $2}'" % (dirname0,energypath)
+  #print command
   process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
   proc_stdout = process.communicate()[0].strip()
   if (len(proc_stdout)>0):
@@ -599,16 +605,43 @@ def get_mol_index_from_cell_vector(cell0_index,cell_vector):
 def write_epsilon_file(mols,epsilons,snapshotdir,indivdir,epsilonfile):
  
  cluster_size = len(mols)
- strCS = "%03d" % cluster_size
 
- # create identification string for cluster
- strID=""
- for imol in range(0, cluster_size):
-  strID = strID + "-%05d" % (mols[imol]+1)
-  
- dirname0 = indivdir + strID
- energypath = snapshotdir + "/" + strCS + "/" + epsilonfile
- command = "echo %s %20.10f >> %s" % (dirname0,epsilons[cluster_size-1],energypath)
- process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
- proc_stdout = process.communicate()[0].strip()
+ if (clusterdata.mode_epsilon_file[cluster_size-1] != clusterdata.epsilon_donotwrite):
+ 
+  # create identification string for cluster
+  strCS = "%03d" % cluster_size
+  strID=""
+  for imol in range(0, cluster_size):
+   strID = strID + "-%05d" % (mols[imol]+1)
+   
+  dirname0 = indivdir + strID
+  energypath = snapshotdir + "/" + strCS + "/" + epsilonfile
+  command = "echo %s %20.10f >> %s" % (dirname0,epsilons[cluster_size-1],energypath)
+  process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+  proc_stdout = process.communicate()[0].strip()
+
+def init_bookkeeping_data():
+ 
+ for icluster in range(0,clusterdata.largest_cluster):
+  clusterdata.ntuples.append(0)
+  clusterdata.ntuples_kept.append(0)
+  clusterdata.ntuples_not_submitted.append(0)
+  clusterdata.ibatch.append(1)
+  clusterdata.farming_file.append( farming_file_start_writing( icluster+1, clusterdata.ibatch[icluster], clusterdata.snapshotdir ) )
+
+def close_submit_report():
+
+ # close the farming files
+ for icluster in range(0,clusterdata.largest_cluster):
+  if (clusterdata.ntuples_not_submitted[icluster] > 0):
+   ngroups,ncores,ppn,wallminutes = get_schedule(clusterdata.ntuples_not_submitted[icluster])
+   farming_file_finish_writing(clusterdata.farming_file[icluster],ngroups)
+   print "%3d-molecule clusters: #clusters %10d --> groups %10d cores %10d minutes %10d" % (icluster+1,clusterdata.ntuples_not_submitted[icluster],ngroups,ncores,wallminutes)
+   pack_and_submit(clusterdata.snapshotdir,clusterdata.indivdir,icluster+1,clusterdata.ibatch[icluster],ncores,wallminutes)
+
+ print "=========================="
+ for icluster in range(0,clusterdata.largest_cluster):
+  print "TOTAL %3d-molecule clusters: %10d, submitted in %03d jobs" % (icluster+1,clusterdata.ntuples_kept[icluster],clusterdata.ibatch[icluster])
+ print "=========================="
+
  

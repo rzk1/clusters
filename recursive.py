@@ -69,6 +69,10 @@ def process_cluster(cluster_index,connectivity):
     for itarget in range(size_index):
      energy[size_index]-=energy[itarget]
     #print "Final cluster epsilon: ", energy[size_index]
+    #### sum up epsilons to get the total energy
+    #### use appropriate coefficients
+    coef = 1.0
+    clusterdata.total_energy += coef*energy[size_index]
     clusters.write_epsilon_file(cluster_index,energy,clusterdata.snapshotdir,clusterdata.indivdir,clusterdata.epsilonfile)
     print "<<<"
     

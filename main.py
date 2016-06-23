@@ -29,6 +29,11 @@ for icluster in clusterdata.docluster:
   clusterdata.largest_cluster = isize
 if (clusterdata.largest_cluster < 1):
  exit(3)
+
+# check if mode_epsilon_file array is the same length as docluster
+if (len(clusterdata.docluster) != len(clusterdata.mode_epsilon_file) ):
+ print "Lenght of docluster and mode_epsilon_file must be equal"
+ exit(3)
  
 clusterdata.ncells = [0,0,0] # how many periodic cells in each direction we should consider
 for idim in range(0,3):
@@ -60,18 +65,18 @@ print "Molecules: %6d, Zero-cell molecules: %6d, Central molecules: %6d" % (nmol
 
 connectivityFile=infile+".connectivity-"+"%.7f" % clusterdata.Rcutoff
 if ( os.path.isfile(connectivityFile) ):
- clusterdata.connectivity = clusters.read_connectivity_matrix(connectivityFile)
+ clusterdata.connectivity = clusters.read_connectivity_matrix(connectivityFile,nmols)
 else:
  clusterdata.connectivity = clusters.create_connectivity_matrix(clusterdata.array_of_lines,nmols,clusterdata.Rcutoff)
  clusters.write_connectivity_matrix(connectivityFile,clusterdata.connectivity,nmols)
 
 # initialize all bookkeeping arrays
 if (clusterdata.action==clusterdata.action_submit):
- clusterdata.init_bookkeeping_data()
+ clusters.init_bookkeeping_data()
 
 if (clusterdata.action==clusterdata.action_readenergy):
  clusters.extract_DFT_energies_to_one_file(clusterdata.docluster,clusterdata.snapshotdir,clusterdata.tempdir,clusterdata.indivdir,clusterdata.energyfile)
- clusters.delete_epsilon_files(clusterdata.docluster,clusterdata.snapshotdir,clusterdata.epsilonfile)
+ clusters.delete_epsilon_files(clusterdata.mode_epsilon_file,clusterdata.snapshotdir,clusterdata.epsilonfile)
  # get charges on atoms (to compute purely electrostatic energy)
  #clusters.unpack_arc(1,clusterdata.snapshotdir,clusterdata.tempdir)
  #clusterdata.array_of_charges = clusters.get_atomic_charges(nmols_unique,clusterdata.snapshotdir,clusterdata.tempdir,clusterdata.indivdir)
@@ -87,9 +92,10 @@ elif (clusterdata.action==clusterdata.action_readenergy):
   if (clusterdata.docluster[imax]==1):
    cluster_index=[]
    recursive.loop_over_all_clusters(cluster_index, 0, nmols_central, nmols, imax+1)
+ print 'Total energy: %20.10f' % clusterdata.total_energy
 # =============================================================
 
 ############# wrap up ################
 if (clusterdata.action==clusterdata.action_submit):
- clusterdata.close_submit_report()
+ clusters.close_submit_report()
 

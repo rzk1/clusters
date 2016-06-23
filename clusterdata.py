@@ -1,5 +1,3 @@
-import clusters
-
 ########## IMPORTANT INITIAL SETTINGS ################
 # 0 - submit jobs, 1 - get energies
 action = 1 
@@ -7,14 +5,17 @@ action = 1
 # String containing 0's and/or 1's. 0 - do not process, 1 - process
 # First digit refers to 1-molecule clusters, second - to 2-molecule and so on 
 docluster = [1,1]
-abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
+#abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
 #abc = [35., 35.,35.] # flat system
-#abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
-Rcutoff = 7.76
-#Rcutoff = 15.49
+abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
+#Rcutoff = 7.76
+Rcutoff = 11.0
 #Rcutoff = 3.01
-doSubmit = False
-only_first_N_molecules=-1 # if more than zero select only the first N molecules from the central cell
+doSubmit = False # for now, relevant only for action=0
+only_first_N_molecules = 1 # if more than zero select only the first N molecules from the central cell
+# mode_epsilon_file tells what to do with the existing epsilon file: 1 - rewrite, 0 - do not write to it
+# elements of the array refere to clusters of certain size: 1,2,3,etc molecules
+mode_epsilon_file = [0,0]
 
 atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
 indivdir = "cluster"
@@ -46,31 +47,11 @@ abc_gasphase = [0.0,0.0,0.0]
 
 action_submit = 0
 action_readenergy = 1
+
+epsilon_rewrite = 1
+epsilon_donotwrite = 0
+
+# (approximate) total energy of the system
+total_energy = 0.0
 ##################################
-
-def init_bookkeeping_data():
- 
- for icluster in range(0,largest_cluster):
-  #print "cluster=", icluster
-  ntuples.append(0)
-  ntuples_kept.append(0)
-  ntuples_not_submitted.append(0)
-  ibatch.append(1)
-  farming_file.append( clusters.farming_file_start_writing( icluster+1, ibatch[icluster], snapshotdir ) )
-  #print farming_file, snapshotdir
-
-def close_submit_report():
-
- # close the farming files
- for icluster in range(0,largest_cluster):
-  if (ntuples_not_submitted[icluster] > 0):
-   ngroups,ncores,ppn,wallminutes = clusters.get_schedule(ntuples_not_submitted[icluster])
-   clusters.farming_file_finish_writing(farming_file[icluster],ngroups)
-   print "%3d-molecule clusters: #clusters %10d --> groups %10d cores %10d minutes %10d" % (icluster+1,ntuples_not_submitted[icluster],ngroups,ncores,wallminutes)
-   clusters.pack_and_submit(snapshotdir,indivdir,icluster+1,ibatch[icluster],ncores,wallminutes)
-
- print "=========================="
- for icluster in range(0,largest_cluster):
-  print "TOTAL %3d-molecule clusters: %10d, submitted in %03d jobs" % (icluster+1,ntuples_kept[icluster],ibatch[icluster])
- print "=========================="
 
