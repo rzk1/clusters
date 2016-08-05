@@ -483,8 +483,8 @@ def get_cluster_e(mols,snapshotdir,indivdir,energyfile):
 
   # stop because the code was not tested for first failed search
   # make sure that shifting molecules works correctly
-  if (imol>0):
-   exit(555)
+  # if (imol>0):
+  #  exit(555)
  
   centered_mols=center_cluster_by_molecule(imol,mols) 
 
@@ -650,4 +650,3 @@ def close_submit_report():
   print "TOTAL %3d-molecule clusters: %10d, submitted in %03d jobs" % (icluster+1,clusterdata.ntuples_kept[icluster],clusterdata.ibatch[icluster])
  print "=========================="
 
- 

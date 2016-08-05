@@ -92,7 +92,18 @@ elif (clusterdata.action==clusterdata.action_readenergy):
   if (clusterdata.docluster[imax]==1):
    cluster_index=[]
    recursive.loop_over_all_clusters(cluster_index, 0, nmols_central, nmols, imax+1)
- print 'Total energy: %20.10f' % clusterdata.total_energy
+ print 'Total energy: %20.10f' % clusterssterdata.total_energy
+######WRITING THE FILE########
+elif (clusterdata.action == clusterdata.action_fileprep):
+ submission_file = open('datafile.txt', 'w+')
+ clusterdata.filename= submission_file
+ cluster_index=[]
+ clusterdata.filename.write("Rcutoff: ")
+ clusterdata.filename.write(str(clusterdata.Rcutoff))
+ clusterdata.filename.write("\n\n")
+ recursive.loop_over_all_clusters(cluster_index, 0, nmols_central, nmols, clusterdata.largest_cluster)
+ submission_file.close()
+ 
 # =============================================================
 
 ############# wrap up ################
