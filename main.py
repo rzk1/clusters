@@ -83,19 +83,41 @@ if (clusterdata.action==clusterdata.action_readenergy):
  #clusters.delete_temp_dir(1,clusterdata.snapshotdir,clusterdata.tempdir)
 
 # =============================================================
-# now go over all clusters
-if (clusterdata.action==clusterdata.action_submit): 
+# main loop over clusters
+# =============================================================
+if (clusterdata.action==clusterdata.action_submit):
+
+ # loop over clusters of all possible sizes 
  cluster_index=[]
  recursive.loop_over_all_clusters(cluster_index, 0, nmols_central, nmols, clusterdata.largest_cluster)
-elif (clusterdata.action==clusterdata.action_readenergy):
+
+elif (clusterdata.action==clusterdata.action_readenergy or clusterdata.action == clusterdata.action_fileprep):
+
+ # loop over clusters of one particular size (select sizes by setting flags in docluster array)
  for imax in range(clusterdata.largest_cluster):
   if (clusterdata.docluster[imax]==1):
    cluster_index=[]
+
+   strIcluster = "%03d" % (imax+1)
+   dbfname_Icluster = clusterdata.snapshotdir + "/" + clusterdata.dbfname + "-" + strIcluster
+   clusterdata.dbfhandle = open(dbfname_Icluster, 'w')
+   #clusterdata.dbfhandle.write("Rcutoff: ")
+   #clusterdata.dbfhandle.write(str(clusterdata.Rcutoff))
+   #clusterdata.dbfhandle.write("\n\n")
+ 
    recursive.loop_over_all_clusters(cluster_index, 0, nmols_central, nmols, imax+1)
- print 'Total energy: %20.10f' % clusterdata.total_energy
+
+   clusterdata.dbfhandle.close()
+
+ print 'Accumulated energy: %20.10f' % clusterdata.total_energy
+
+# =============================================================
+# END main loop over clusters
 # =============================================================
 
-############# wrap up ################
+# =============================================================
+# wrap up
+# =============================================================
 if (clusterdata.action==clusterdata.action_submit):
  clusters.close_submit_report()
 

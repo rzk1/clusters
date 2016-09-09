@@ -1,6 +1,7 @@
 from sys import exit
 import random
-import clusters, clusterdata
+import clusters, clusterdata, analysis
+import math, numpy
 
 def loop_over_all_clusters(cluster_index, start_index, nmols_central, nmols, cluster_size_max):
 
@@ -20,7 +21,7 @@ def loop_over_all_clusters(cluster_index, start_index, nmols_central, nmols, clu
   if (clusterdata.docluster[cluster_size-1]==1):
    if (clusterdata.action==clusterdata.action_submit): 
     process_cluster(cluster_index,clusterdata.connectivity)
-   elif (clusterdata.action==clusterdata.action_readenergy):
+   elif (clusterdata.action==clusterdata.action_readenergy or clusterdata.action==clusterdata.action_fileprep):
     if (cluster_size==cluster_size_max):
      process_cluster(cluster_index,clusterdata.connectivity)
 
@@ -40,9 +41,6 @@ def process_cluster(cluster_index,connectivity):
 
  # create a record if necessary
  if (all_molecules_are_connected):
-
-   print cluster_index
-
    # how many molecules are in the cluster
    cluster_size = len(cluster_index)
    size_index=cluster_size-1
@@ -74,6 +72,10 @@ def process_cluster(cluster_index,connectivity):
     coef = 1.0
     clusterdata.total_energy += coef*energy[size_index]
     clusters.write_epsilon_file(cluster_index,energy,clusterdata.snapshotdir,clusterdata.indivdir,clusterdata.epsilonfile)
+
+   #### collect essential data and write to file ####
+   elif (clusterdata.action==clusterdata.action_fileprep):
+    analysis.collect_analyze_write(cluster_index)
     
 def is_connected(cluster_index,connectivity):
 
@@ -170,9 +172,6 @@ def DFS(visited,node,connectivity,cluster_index):
         if(connectivity[copy][copy2] == 0):
           DFS(visited,i,connectivity,cluster_index)
 
-
-  
-
 # initial call with subcluster=[], start_index=0
 def loop_over_all_subclusters_in_cluster(subcluster, target_size, start_index, cluster):
 
@@ -192,8 +191,8 @@ def loop_over_all_subclusters_in_cluster(subcluster, target_size, start_index, c
   else:
    # get subcluster's energy, accumulate
    energy += clusters.get_cluster_e(subcluster,clusterdata.snapshotdir,clusterdata.indivdir,clusterdata.epsilonfile)
-   print " ",
-   print subcluster
+   # print " ",
+   # print subcluster
 
   del subcluster[-1]
 

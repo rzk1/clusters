@@ -651,4 +651,3 @@ def close_submit_report():
   print "TOTAL %3d-molecule clusters: %10d, submitted in %03d jobs" % (icluster+1,clusterdata.ntuples_kept[icluster],clusterdata.ibatch[icluster])
  print "=========================="
 
- 

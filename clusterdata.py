@@ -1,10 +1,10 @@
 ########## IMPORTANT INITIAL SETTINGS ################
-# 0 - submit jobs, 1 - get energies
-action = 1
+# 0 - submit jobs, 1 - get energies, 2 - collect cluster data
+action = 2
 # Process this cluster size?
 # String containing 0's and/or 1's. 0 - do not process, 1 - process
 # First digit refers to 1-molecule clusters, second - to 2-molecule and so on 
-docluster = [1,1]
+docluster = [0,1]
 abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
 #abc = [35., 35.,35.] # flat system
 #abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
@@ -23,6 +23,7 @@ cp2kfname = "standard"
 tempdir = "TEMPOR"
 energyfile = "energies.out"
 epsilonfile = "epsilon.out"
+dbfname = "database"
 ###################################
 
 ########## SHARED DATA ############
@@ -47,9 +48,12 @@ abc_gasphase = [0.0,0.0,0.0]
 
 action_submit = 0
 action_readenergy = 1
+action_fileprep = 2
 
 epsilon_rewrite = 1
 epsilon_donotwrite = 0
+
+dbfhandle = -1
 
 # (approximate) total energy of the system
 total_energy = 0.0
