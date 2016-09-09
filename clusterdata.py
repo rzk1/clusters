@@ -1,21 +1,21 @@
 ########## IMPORTANT INITIAL SETTINGS ################
 # 0 - submit jobs, 1 - get energies
-action = 0 
+action = 1
 # Process this cluster size?
 # String containing 0's and/or 1's. 0 - do not process, 1 - process
 # First digit refers to 1-molecule clusters, second - to 2-molecule and so on 
-docluster = [0,0,0,1]
-#abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
-abc = [35., 35.,35.] # flat system
+docluster = [1,1]
+abc = [15.5356853362,15.5356853362,15.5356853362] # 125-molecule periodic box
+#abc = [35., 35.,35.] # flat system
 #abc = [2*15.492205666998032,2*15.492205666998032,2*15.492205666998032] # 1000-molecule box
-#Rcutoff = 7.76
-#Rcutoff = 7.74
-Rcutoff = 3.01
+#Rcutoff = 15.49
+Rcutoff = 7.75
+#Rcutoff = 3.01
 doSubmit = False # for now, relevant only for action=0
 only_first_N_molecules = -1 # if more than zero select only the first N molecules from the central cell
 # mode_epsilon_file tells what to do with the existing epsilon file: 1 - rewrite, 0 - do not write to it
-# elements of the array refere to clusters of certain size: 1,2,3,etc molecules
-mode_epsilon_file = [0,0,0,0]
+# elements of the array refer to clusters of certain size: 1,2,3,etc molecules
+mode_epsilon_file = [1,1]
 
 atoms_per_molecule=3 # how many atoms are in a molecule (not all subrout are generalized)
 indivdir = "cluster"

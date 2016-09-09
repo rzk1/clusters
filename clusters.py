@@ -484,6 +484,7 @@ def get_cluster_e(mols,snapshotdir,indivdir,energyfile):
   # stop because the code was not tested for first failed search
   # make sure that shifting molecules works correctly
   if (imol>0):
+   print "This search subroutine has not been tested yet! Cluster: ", mols
    exit(555)
  
   centered_mols=center_cluster_by_molecule(imol,mols) 
